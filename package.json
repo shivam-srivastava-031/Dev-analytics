@@ -1,0 +1,18 @@
+{
+  "name": "analytics-dashboard",
+  "version": "1.0.0",
+  "description": "Self-referential product analytics dashboard",
+  "type": "module",
+  "scripts": {
+    "server": "node server/server.js",
+    "client": "npx -y vite client --port 5173 --open",
+    "dev": "npx -y concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "better-sqlite3": "^11.6.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
