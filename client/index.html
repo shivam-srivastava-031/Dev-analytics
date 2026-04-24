@@ -123,12 +123,13 @@
         <input type="date" id="filter-to">
       </div>
       <div class="filter-group">
-        <label for="filter-age-min">Age Min</label>
-        <input type="number" id="filter-age-min" placeholder="Any" min="1" max="120">
-      </div>
-      <div class="filter-group">
-        <label for="filter-age-max">Age Max</label>
-        <input type="number" id="filter-age-max" placeholder="Any" min="1" max="120">
+        <label for="filter-age">Age Filter</label>
+        <select id="filter-age">
+          <option value="">All</option>
+          <option value="<18">&lt;18</option>
+          <option value="18-40">18-40</option>
+          <option value=">40">&gt;40</option>
+        </select>
       </div>
       <div class="filter-group">
         <label for="filter-gender">Gender</label>

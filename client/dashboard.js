@@ -36,8 +36,7 @@ function saveFiltersToCookies() {
   const filters = {
     from: document.getElementById('filter-from').value,
     to: document.getElementById('filter-to').value,
-    age_min: document.getElementById('filter-age-min').value,
-    age_max: document.getElementById('filter-age-max').value,
+    age: document.getElementById('filter-age').value,
     gender: document.getElementById('filter-gender').value,
   };
   setCookie('dashboard_filters', JSON.stringify(filters));
@@ -50,8 +49,7 @@ function restoreFiltersFromCookies() {
     const filters = JSON.parse(raw);
     if (filters.from) document.getElementById('filter-from').value = filters.from;
     if (filters.to) document.getElementById('filter-to').value = filters.to;
-    if (filters.age_min) document.getElementById('filter-age-min').value = filters.age_min;
-    if (filters.age_max) document.getElementById('filter-age-max').value = filters.age_max;
+    if (filters.age) document.getElementById('filter-age').value = filters.age;
     if (filters.gender) document.getElementById('filter-gender').value = filters.gender;
   } catch (e) {
     // Invalid cookie, ignore
@@ -64,14 +62,21 @@ function getFilterParams() {
 
   const from = document.getElementById('filter-from').value;
   const to = document.getElementById('filter-to').value;
-  const ageMin = document.getElementById('filter-age-min').value;
-  const ageMax = document.getElementById('filter-age-max').value;
+  const age = document.getElementById('filter-age').value;
   const gender = document.getElementById('filter-gender').value;
 
   if (from) params.set('from', from + 'T00:00:00');
   if (to) params.set('to', to + 'T23:59:59');
-  if (ageMin) params.set('age_min', ageMin);
-  if (ageMax) params.set('age_max', ageMax);
+  
+  if (age === '<18') {
+    params.set('age_max', '17');
+  } else if (age === '18-40') {
+    params.set('age_min', '18');
+    params.set('age_max', '40');
+  } else if (age === '>40') {
+    params.set('age_min', '41');
+  }
+  
   if (gender) params.set('gender', gender);
 
   // If drilled down, add feature param
@@ -133,15 +138,16 @@ function updateKPIs(data) {
 
 // ── Render all charts ───────────────────────────────────────────────
 function renderAllCharts(data) {
-  renderTimelineChart(data.clicks_over_time);
-
-  const { isDrilledDown } = getDrilldownState();
+  const { isDrilledDown, drilldownFeature } = getDrilldownState();
+  
+  // Timeline chart shows total over time OR drilldown feature over time
   if (isDrilledDown && data.feature_drilldown) {
-    renderFeaturesChart(data.clicks_by_feature, data.feature_drilldown);
+    renderTimelineChart(data.feature_drilldown, drilldownFeature);
   } else {
-    renderFeaturesChart(data.clicks_by_feature);
+    renderTimelineChart(data.clicks_over_time, null);
   }
 
+  renderFeaturesChart(data.clicks_by_feature);
   renderGenderChart(data.clicks_by_gender);
   renderAgeChart(data.clicks_by_age_group);
 }
@@ -178,14 +184,14 @@ export function initDashboard(user) {
     // Track which filters changed
     const gender = document.getElementById('filter-gender').value;
     const from = document.getElementById('filter-from').value;
-    const ageMin = document.getElementById('filter-age-min').value;
+    const age = document.getElementById('filter-age').value;
 
     if (from) tracker.track('date_filter');
     if (gender) tracker.track('gender_filter');
-    if (ageMin) tracker.track('age_filter');
+    if (age) tracker.track('age_filter');
 
     // If none specific, track general filter use
-    if (!from && !gender && !ageMin) tracker.track('date_filter');
+    if (!from && !gender && !age) tracker.track('date_filter');
 
     refreshDashboard();
   });
@@ -193,8 +199,7 @@ export function initDashboard(user) {
   document.getElementById('clear-filters-btn').addEventListener('click', () => {
     document.getElementById('filter-from').value = '';
     document.getElementById('filter-to').value = '';
-    document.getElementById('filter-age-min').value = '';
-    document.getElementById('filter-age-max').value = '';
+    document.getElementById('filter-age').value = '';
     document.getElementById('filter-gender').value = '';
     clearCookie('dashboard_filters');
     resetDrilldown();
@@ -214,11 +219,7 @@ export function initDashboard(user) {
     tracker.track('date_filter');
   });
 
-  document.getElementById('filter-age-min').addEventListener('change', () => {
-    tracker.track('age_filter');
-  });
-
-  document.getElementById('filter-age-max').addEventListener('change', () => {
+  document.getElementById('filter-age').addEventListener('change', () => {
     tracker.track('age_filter');
   });
 

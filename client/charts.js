@@ -45,9 +45,22 @@ let isDrilledDown = false;
 let drilldownFeature = null;
 
 /** Create/update the Clicks Over Time line chart */
-export function renderTimelineChart(data) {
+export function renderTimelineChart(data, drilldownFeature = null) {
   const ctx = document.getElementById('chart-timeline');
   if (!ctx) return;
+
+  // Find the container to update the title
+  const container = ctx.closest('.chart-card');
+  if (container) {
+    const titleEl = container.querySelector('.chart-title');
+    if (titleEl) {
+      if (drilldownFeature) {
+        titleEl.textContent = `"${drilldownFeature}" Clicks Daily`;
+      } else {
+        titleEl.textContent = 'Clicks Over Time';
+      }
+    }
+  }
 
   const labels = data.map(d => {
     const date = new Date(d.date);
@@ -58,6 +71,7 @@ export function renderTimelineChart(data) {
   if (timelineChart) {
     timelineChart.data.labels = labels;
     timelineChart.data.datasets[0].data = values;
+    timelineChart.data.datasets[0].label = drilldownFeature || 'Clicks';
     timelineChart.update();
     return;
   }
@@ -67,7 +81,7 @@ export function renderTimelineChart(data) {
     data: {
       labels,
       datasets: [{
-        label: 'Clicks',
+        label: drilldownFeature || 'Clicks',
         data: values,
         borderColor: COLORS.cyan,
         backgroundColor: (context) => {
@@ -117,83 +131,17 @@ export function renderTimelineChart(data) {
   });
 }
 
-/** Create/update the Clicks by Feature bar chart (or drilldown line chart) */
-export function renderFeaturesChart(data, drilldownData = null) {
+/** Create/update the Clicks by Feature bar chart */
+export function renderFeaturesChart(data) {
   const ctx = document.getElementById('chart-features');
-  const titleEl = document.getElementById('features-chart-title');
   const backBtn = document.getElementById('drilldown-back-btn');
   if (!ctx) return;
 
-  // Destroy existing chart for type switch
-  if (featuresChart) {
-    featuresChart.destroy();
-    featuresChart = null;
-  }
-
-  if (drilldownData && drilldownFeature) {
-    // ── Drilldown Mode: Line chart for specific feature ──
-    isDrilledDown = true;
-    titleEl.textContent = `"${drilldownFeature}" Over Time`;
+  if (isDrilledDown) {
     backBtn.classList.remove('hidden');
-
-    const labels = drilldownData.map(d => {
-      const date = new Date(d.date);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    });
-    const values = drilldownData.map(d => d.count);
-
-    featuresChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: drilldownFeature,
-          data: values,
-          borderColor: COLORS.violet,
-          backgroundColor: (context) => {
-            const chart = context.chart;
-            const { ctx: c, chartArea } = chart;
-            if (!chartArea) return COLORS.violetFade;
-            const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(124, 58, 237, 0.3)');
-            gradient.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
-            return gradient;
-          },
-          fill: true,
-          tension: 0.4,
-          pointRadius: 5,
-          pointHoverRadius: 8,
-          pointBackgroundColor: COLORS.violet,
-          pointBorderColor: '#050816',
-          pointBorderWidth: 2,
-          borderWidth: 2.5,
-        }],
-      },
-      options: {
-        onClick: () => tracker.track('line_chart_click'),
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(10, 14, 39, 0.9)',
-            borderColor: 'rgba(255,255,255,0.1)',
-            borderWidth: 1,
-            cornerRadius: 8,
-          },
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, ticks: { precision: 0 } },
-        },
-      },
-    });
-    return;
+  } else {
+    backBtn.classList.add('hidden');
   }
-
-  // ── Normal Mode: Horizontal bar chart ──
-  isDrilledDown = false;
-  drilldownFeature = null;
-  titleEl.textContent = 'Clicks by Feature';
-  backBtn.classList.add('hidden');
 
   const labels = data.map(d => d.feature_name);
   const values = data.map(d => d.count);
@@ -202,6 +150,15 @@ export function renderFeaturesChart(data, drilldownData = null) {
     return c.replace(', 1)', ', 0.7)');
   });
   const borderColors = data.map((_, i) => FEATURE_COLORS[i % FEATURE_COLORS.length]);
+
+  if (featuresChart) {
+    featuresChart.data.labels = labels;
+    featuresChart.data.datasets[0].data = values;
+    featuresChart.data.datasets[0].backgroundColor = bgColors;
+    featuresChart.data.datasets[0].borderColor = borderColors;
+    featuresChart.update();
+    return;
+  }
 
   featuresChart = new Chart(ctx, {
     type: 'bar',
@@ -218,13 +175,13 @@ export function renderFeaturesChart(data, drilldownData = null) {
       }],
     },
     options: {
-      indexAxis: 'y',
       onClick: (e, elements) => {
         tracker.track('bar_chart_click');
         if (elements.length > 0) {
           const idx = elements[0].index;
           const feature = data[idx].feature_name;
           // Trigger drilldown
+          isDrilledDown = true;
           drilldownFeature = feature;
           tracker.track('bar_chart_zoom');
           // Dispatch custom event for dashboard to handle
@@ -240,15 +197,18 @@ export function renderFeaturesChart(data, drilldownData = null) {
           cornerRadius: 8,
           callbacks: {
             title: (items) => items[0].label,
-            label: (item) => ` ${item.raw} clicks — click to drill down`,
+            label: (item) => ` ${item.raw} clicks — click to see timeline`,
           },
         },
       },
       scales: {
-        x: { beginAtZero: true, ticks: { precision: 0 } },
-        y: {
+        x: { 
           grid: { display: false },
           ticks: { font: { size: 11 } },
+        },
+        y: { 
+          beginAtZero: true, 
+          ticks: { precision: 0 } 
         },
       },
     },
