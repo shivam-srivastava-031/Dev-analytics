@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Self-referential product analytics dashboard — visualizes its own usage in real time">
+  <title>Analytics Dashboard — Self-Referential</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- ═══ AUTH VIEW ═══ -->
+  <div id="auth-view" class="view active">
+    <div class="auth-container">
+      <div class="auth-glow"></div>
+      <div class="auth-card glass-card">
+        <div class="auth-header">
+          <div class="logo-icon">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <rect width="40" height="40" rx="10" fill="url(#logoGrad)"/>
+              <path d="M10 28L15 18L20 22L25 12L30 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="15" cy="18" r="2" fill="white"/>
+              <circle cx="20" cy="22" r="2" fill="white"/>
+              <circle cx="25" cy="12" r="2" fill="white"/>
+              <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+            </svg>
+          </div>
+          <h1>Analytics Dashboard</h1>
+          <p class="auth-subtitle">Every click you make is tracked and visualized</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="login-tab" data-tab="login">Login</button>
+          <button class="auth-tab" id="register-tab" data-tab="register">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" placeholder="Enter username" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+          <div id="login-error" class="form-error"></div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form hidden">
+          <div class="form-group">
+            <label for="register-username">Username</label>
+            <input type="text" id="register-username" placeholder="Choose a username" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" placeholder="Choose a password" autocomplete="new-password" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="register-age">Age</label>
+              <input type="number" id="register-age" placeholder="25" min="1" max="120" required>
+            </div>
+            <div class="form-group">
+              <label for="register-gender">Gender</label>
+              <select id="register-gender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" id="register-btn">Create Account</button>
+          <div id="register-error" class="form-error"></div>
+        </form>
+
+        <p class="auth-hint">Demo: <strong>alice</strong> / <strong>password123</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DASHBOARD VIEW ═══ -->
+  <div id="dashboard-view" class="view">
+    <!-- Top Navbar -->
+    <nav class="navbar glass-card">
+      <div class="nav-left">
+        <div class="logo-icon-sm">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="10" fill="url(#logoGrad2)"/>
+            <path d="M10 28L15 18L20 22L25 12L30 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="logoGrad2" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+          </svg>
+        </div>
+        <span class="nav-title">Analytics Dashboard</span>
+        <span class="nav-badge">Self-Referential</span>
+      </div>
+      <div class="nav-right">
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          <span>Live Tracking</span>
+        </div>
+        <div class="user-info">
+          <span id="nav-username">admin</span>
+        </div>
+        <button id="logout-btn" class="btn-ghost">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar glass-card">
+      <div class="filter-group">
+        <label for="filter-from">From</label>
+        <input type="date" id="filter-from">
+      </div>
+      <div class="filter-group">
+        <label for="filter-to">To</label>
+        <input type="date" id="filter-to">
+      </div>
+      <div class="filter-group">
+        <label for="filter-age-min">Age Min</label>
+        <input type="number" id="filter-age-min" placeholder="Any" min="1" max="120">
+      </div>
+      <div class="filter-group">
+        <label for="filter-age-max">Age Max</label>
+        <input type="number" id="filter-age-max" placeholder="Any" min="1" max="120">
+      </div>
+      <div class="filter-group">
+        <label for="filter-gender">Gender</label>
+        <select id="filter-gender">
+          <option value="">All</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <button id="apply-filters-btn" class="btn-primary btn-sm">Apply Filters</button>
+      <button id="clear-filters-btn" class="btn-ghost btn-sm">Clear</button>
+    </div>
+
+    <!-- KPI Stats -->
+    <div class="kpi-row">
+      <div class="kpi-card glass-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-total">—</span>
+          <span class="kpi-label">Total Clicks</span>
+        </div>
+      </div>
+      <div class="kpi-card glass-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #06b6d4, #22d3ee)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-users">—</span>
+          <span class="kpi-label">Unique Users</span>
+        </div>
+      </div>
+      <div class="kpi-card glass-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-today">—</span>
+          <span class="kpi-label">Today's Clicks</span>
+        </div>
+      </div>
+      <div class="kpi-card glass-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #ef4444, #f87171)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" id="kpi-top-feature">—</span>
+          <span class="kpi-label">Top Feature</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+      <div class="chart-card glass-card" id="chart-card-timeline">
+        <h3 class="chart-title">Clicks Over Time</h3>
+        <div class="chart-wrapper">
+          <canvas id="chart-timeline"></canvas>
+        </div>
+      </div>
+      <div class="chart-card glass-card" id="chart-card-features">
+        <div class="chart-header">
+          <h3 class="chart-title" id="features-chart-title">Clicks by Feature</h3>
+          <button class="btn-ghost btn-xs hidden" id="drilldown-back-btn">← Back</button>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chart-features"></canvas>
+        </div>
+      </div>
+      <div class="chart-card glass-card" id="chart-card-gender">
+        <h3 class="chart-title">Clicks by Gender</h3>
+        <div class="chart-wrapper chart-wrapper-doughnut">
+          <canvas id="chart-gender"></canvas>
+        </div>
+      </div>
+      <div class="chart-card glass-card" id="chart-card-age">
+        <h3 class="chart-title">Clicks by Age Group</h3>
+        <div class="chart-wrapper">
+          <canvas id="chart-age"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Event Feed -->
+    <div class="live-feed glass-card">
+      <div class="feed-header">
+        <h3 class="chart-title">Live Event Feed</h3>
+        <span class="feed-badge" id="feed-count">0 events</span>
+      </div>
+      <div class="feed-list" id="feed-list">
+        <div class="feed-empty">Interact with the dashboard to see events appear here...</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
