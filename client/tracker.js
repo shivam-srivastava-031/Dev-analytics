@@ -3,7 +3,8 @@
 // Captures all dashboard interactions and sends them to POST /track
 // ═══════════════════════════════════════════════════════════════════
 
-const API_BASE = 'http://localhost:3001';
+import { API_BASE } from './config.js';
+
 
 class Tracker {
   constructor() {

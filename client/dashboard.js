@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import tracker from './tracker.js';
+import { API_BASE } from './config.js';
 import {
   renderTimelineChart,
   renderFeaturesChart,
@@ -12,7 +13,6 @@ import {
   resetDrilldown,
 } from './charts.js';
 
-const API_BASE = 'http://localhost:3001';
 let refreshInterval = null;
 let lastAnalyticsData = null;
 

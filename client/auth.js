@@ -3,8 +3,8 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import tracker from './tracker.js';
+import { API_BASE } from './config.js';
 
-const API_BASE = 'http://localhost:3001';
 
 export function initAuth(onLoginSuccess) {
   const loginTab = document.getElementById('login-tab');
