@@ -21,9 +21,15 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. curl, Postman, mobile apps)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow requests with no origin, same-origin requests, or allowed origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Allow the current production URL dynamically if we can detect it
+    // Or simply allow any .railway.app origin for this specific dashboard
+    if (origin.endsWith('.railway.app') || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
     callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
