@@ -30,6 +30,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// ── Static Files (UI) ────────────────────────────────────────────────
+// Serve the static frontend from the client folder
+app.use(express.static(path.join(__dirname, '..', 'client')));
+
 // ── API Routes ──────────────────────────────────────────────────────
 app.use('/', authRoutes);      // POST /register, POST /login
 app.use('/', trackRoutes);     // POST /track
@@ -37,16 +41,7 @@ app.use('/', analyticsRoutes); // GET /analytics
 
 // ── Root Handler ────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to the Dev-analytics API',
-    endpoints: {
-      register: 'POST /register',
-      login: 'POST /login',
-      track: 'POST /track',
-      analytics: 'GET /analytics',
-      health: 'GET /health'
-    }
-  });
+  res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
 });
 
 // ── Health Check ────────────────────────────────────────────────────
