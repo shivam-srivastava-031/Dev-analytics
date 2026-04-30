@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "server": "node server/server.js",
+    "start": "node server/server.js",
     "client": "npx -y vite client --port 5173 --open",
     "dev": "npx -y concurrently \"npm run server\" \"npm run client\""
   },
